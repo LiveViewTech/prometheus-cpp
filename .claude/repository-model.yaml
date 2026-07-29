@@ -1,0 +1,383 @@
+version: 1
+facts:
+  languages:
+    - id: lang-cpp
+      value: C++11
+      evidence:
+        - CMakeLists.txt#19-33
+        - README.md#92-94
+        - core/CMakeLists.txt#21-24
+  frameworks:
+    - id: fw-cmake
+      value: CMake
+      evidence:
+        - CMakeLists.txt
+        - .github/workflows/cmake-ci.yml
+    - id: fw-bazel
+      value: Bazel
+      evidence:
+        - MODULE.bazel
+        - WORKSPACE
+        - .github/workflows/bazel-ci.yml
+    - id: fw-googletest
+      value: GoogleTest
+      evidence:
+        - MODULE.bazel#15
+        - CMakeLists.txt#84-91
+        - .gitmodules
+    - id: fw-google-benchmark
+      value: Google Benchmark
+      evidence:
+        - MODULE.bazel#14
+        - core/benchmarks/CMakeLists.txt
+        - README.md#248-253
+  commands:
+    - id: cmd-submodule-init
+      name: submodule-init
+      value: git submodule update --init
+      evidence:
+        - README.md#159
+    - id: cmd-cmake-configure
+      name: cmake-configure
+      value: cmake .. -DBUILD_SHARED_LIBS=ON -DENABLE_PUSH=OFF -DENABLE_COMPRESSION=OFF
+      evidence:
+        - README.md#123
+    - id: cmd-cmake-build
+      name: cmake-build
+      value: cmake --build . --parallel 4
+      evidence:
+        - README.md#126
+    - id: cmd-cmake-test
+      name: cmake-test
+      value: ctest -V
+      evidence:
+        - README.md#129
+    - id: cmd-cmake-install
+      name: cmake-install
+      value: cmake --install .
+      evidence:
+        - README.md#132
+    - id: cmd-bazel-test
+      name: bazel-test
+      value: bazel test //...
+      evidence:
+        - README.md#141
+        - README.md#238
+    - id: cmd-bazel-build
+      name: bazel-build
+      value: bazel build //...
+      evidence:
+        - README.md#233
+    - id: cmd-bazel-benchmark
+      name: bazel-benchmark
+      value: bazel run -c opt //core/benchmarks
+      evidence:
+        - README.md#253
+    - id: cmd-bazel-scrape-test
+      name: bazel-scrape-test
+      value: bazel test //pull/tests/integration:scrape-test
+      evidence:
+        - README.md#245
+        - .github/workflows/bazel-ci.yml#52
+  entry_points:
+    - id: entry-registry
+      value: core/include/prometheus/registry.h
+      evidence:
+        - core/include/prometheus/registry.h
+        - README.md#39
+    - id: entry-exposer
+      value: pull/include/prometheus/exposer.h
+      evidence:
+        - pull/include/prometheus/exposer.h
+        - README.md#35
+    - id: entry-gateway
+      value: push/include/prometheus/gateway.h
+      evidence:
+        - push/include/prometheus/gateway.h
+    - id: entry-sample-server
+      value: pull/tests/integration/sample_server.cc
+      evidence:
+        - pull/tests/integration/sample_server.cc
+        - README.md#350
+    - id: entry-sample-client
+      value: push/tests/integration/sample_client.cc
+      evidence:
+        - push/tests/integration/sample_client.cc
+    - id: entry-cmake-root
+      value: CMakeLists.txt
+      evidence:
+        - CMakeLists.txt
+    - id: entry-module-bazel
+      value: MODULE.bazel
+      evidence:
+        - MODULE.bazel
+  components:
+    - id: comp-core
+      name: core
+      path: core
+      evidence:
+        - core/CMakeLists.txt
+        - core/BUILD.bazel
+        - core/include/prometheus/registry.h
+    - id: comp-pull
+      name: pull
+      path: pull
+      evidence:
+        - pull/CMakeLists.txt
+        - pull/BUILD.bazel
+        - pull/include/prometheus/exposer.h
+        - pull/src/handler.cc
+    - id: comp-push
+      name: push
+      path: push
+      evidence:
+        - push/CMakeLists.txt
+        - push/BUILD.bazel
+        - push/include/prometheus/gateway.h
+    - id: comp-util
+      name: util
+      path: util
+      evidence:
+        - util/CMakeLists.txt
+        - util/BUILD.bazel
+        - util/include/prometheus/detail/base64.h
+    - id: comp-cmake
+      name: cmake
+      path: cmake
+      evidence:
+        - cmake/prometheus-cpp-config.cmake.in
+        - cmake/project-import-cmake/CMakeLists.txt
+        - cmake/civetweb-3rdparty-config.cmake
+    - id: comp-bazel
+      name: bazel
+      path: bazel
+      evidence:
+        - bazel/repositories.bzl
+        - bazel/export_header.bzl
+        - bazel/curl.bzl
+  dependencies:
+    - id: dep-civetweb
+      name: civetweb
+      type: external
+      evidence:
+        - .gitmodules
+        - MODULE.bazel#8
+        - pull/CMakeLists.txt#1-11
+    - id: dep-curl
+      name: curl
+      type: external
+      evidence:
+        - MODULE.bazel#9
+        - push/CMakeLists.txt#2
+        - README.md#108-110
+    - id: dep-zlib
+      name: zlib
+      type: external
+      evidence:
+        - MODULE.bazel#12
+        - pull/CMakeLists.txt#20-22
+        - README.md#108-110
+    - id: dep-googletest
+      name: googletest
+      type: external
+      evidence:
+        - .gitmodules
+        - MODULE.bazel#15
+        - CMakeLists.txt#84-91
+    - id: dep-google-benchmark
+      name: google_benchmark
+      type: external
+      evidence:
+        - MODULE.bazel#14
+        - core/benchmarks/CMakeLists.txt
+    - id: dep-boringssl
+      name: boringssl
+      type: external
+      evidence:
+        - MODULE.bazel#7
+        - .bazelrc#13
+    - id: dep-core-internal
+      name: core
+      type: internal
+      evidence:
+        - pull/CMakeLists.txt#43-46
+        - push/CMakeLists.txt#20-23
+    - id: dep-util-internal
+      name: util
+      type: internal
+      evidence:
+        - pull/CMakeLists.txt#47
+        - push/CMakeLists.txt#25
+  external_services:
+    - id: svc-pushgateway
+      value: Prometheus Pushgateway
+      evidence:
+        - push/include/prometheus/gateway.h#49-50
+        - push/src/gateway.cc#47-62
+        - push/tests/integration/sample_client.cc
+    - id: svc-prometheus-scraper
+      value: Prometheus or Telegraf HTTP scraper
+      evidence:
+        - pull/include/prometheus/exposer.h
+        - README.md#241-246
+        - .github/workflows/bazel-ci.yml#23-30
+  testing:
+    - id: test-googletest
+      framework: GoogleTest
+      evidence:
+        - core/tests/CMakeLists.txt
+        - pull/tests/unit/exposer_test.cc
+        - util/tests/unit/base64_test.cc
+        - MODULE.bazel#15
+    - id: test-google-benchmark
+      framework: Google Benchmark
+      evidence:
+        - core/benchmarks/main.cc
+        - MODULE.bazel#14
+        - README.md#248-253
+    - id: test-telegraf-scrape
+      framework: Telegraf scrape integration
+      evidence:
+        - pull/tests/integration/CMakeLists.txt
+        - README.md#241-246
+        - .github/workflows/bazel-ci.yml#50-52
+analysis:
+  purpose:
+    value: "C++ client library that implements the Prometheus data model so services can collect metrics and expose them via pull (HTTP exposer) or push (Pushgateway)."
+    confidence: high
+    evidence_refs:
+      - lang-cpp
+      - entry-registry
+      - entry-exposer
+      - entry-gateway
+      - comp-core
+      - comp-pull
+      - comp-push
+  architecture:
+    value: "Three installable libraries on a shared core: core owns Registry/Family metric types and text serialization; pull embeds CivetWeb Exposer to serve /metrics; push uses libcurl Gateway to POST/PUT/DELETE to a Pushgateway. util is a private header-only helper (base64) used by pull/push."
+    confidence: high
+    evidence_refs:
+      - comp-core
+      - comp-pull
+      - comp-push
+      - comp-util
+      - entry-registry
+      - entry-exposer
+      - entry-gateway
+      - dep-civetweb
+      - dep-curl
+      - dep-core-internal
+      - dep-util-internal
+  patterns:
+    - id: pattern-builder-metrics
+      value: "Metrics are created via fluent builders (BuildCounter/BuildGauge/...) then Family::Add for label dimensions, registered into a shared Registry."
+      confidence: high
+      evidence_refs:
+        - entry-registry
+        - entry-sample-server
+        - comp-core
+    - id: pattern-weak-collectable
+      value: "Exposer and Gateway hold weak_ptr Collectable references; callers must keep Registry (or other Collectable) alive for scrapes/pushes to observe data."
+      confidence: high
+      evidence_refs:
+        - entry-exposer
+        - entry-gateway
+        - entry-registry
+    - id: pattern-dual-build
+      value: "Both CMake (with optional git submodules under 3rdparty) and Bazel modules are first-class; CI exercises each path separately."
+      confidence: high
+      evidence_refs:
+        - fw-cmake
+        - fw-bazel
+        - cmd-bazel-test
+        - cmd-cmake-configure
+        - dep-civetweb
+    - id: pattern-optional-libs
+      value: "CMake gates pull/push/compression/testing via ENABLE_PULL, ENABLE_PUSH, ENABLE_COMPRESSION, ENABLE_TESTING options."
+      confidence: high
+      evidence_refs:
+        - entry-cmake-root
+        - comp-pull
+        - comp-push
+  component_notes:
+    - ref: comp-core
+      purpose: "Metric types (Counter, Gauge, Histogram, Summary, Info), Family labeling, Registry collection, and Prometheus text exposition serialization."
+      confidence: high
+    - ref: comp-pull
+      purpose: "HTTP metrics exposer built on CivetWeb, with optional gzip compression, basic auth hooks, and self-instrumentation of scrape traffic."
+      confidence: high
+    - ref: comp-push
+      purpose: "libcurl client for Prometheus Pushgateway Push/PushAdd/Delete (sync and async), including auth and custom headers."
+      confidence: high
+    - ref: comp-util
+      purpose: "Header-only base64 helpers used by pull basic-auth and push; CMake exports an INTERFACE util target, Bazel limits visibility to package subpackages."
+      confidence: high
+    - ref: comp-cmake
+      purpose: "CMake package config, pkg-config templates, third-party find modules, and consumer import smoke-test projects."
+      confidence: high
+    - ref: comp-bazel
+      purpose: "Bazel helpers for export headers and vendored third-party BUILD wrappers used by the Bazel build."
+      confidence: high
+  service_notes:
+    - ref: svc-pushgateway
+      purpose: "Remote receiver for pushed metrics when pull scraping is unavailable."
+      integration: "Gateway builds job URI host:port/metrics/job/<job> plus labels and sends text-format payloads via curl."
+      confidence: high
+    - ref: svc-prometheus-scraper
+      purpose: "Pull-based collectors that scrape the Exposer /metrics endpoint."
+      integration: "Exposer serves collectables over HTTP; Bazel CI/docs exercise scraping via Telegraf (//pull/tests/integration:scrape-test)."
+      confidence: high
+  dangerous_areas:
+    - id: danger-registry-lifetime
+      value: "Registry lifetime vs weak_ptr registration"
+      reason: "README and APIs register collectables as weak_ptr; if the shared Registry is destroyed, exposer/gateway silently stop collecting those metrics."
+      confidence: high
+      evidence_refs:
+        - entry-exposer
+        - entry-gateway
+        - entry-registry
+    - id: danger-dynamic-family-add
+      value: "Hot-path Family::Add with dynamic labels"
+      reason: "README warns dynamic Family::Add is slow and high-cardinality labels violate Prometheus practices; prefer pre-created dimensional counters."
+      confidence: high
+      evidence_refs:
+        - entry-sample-server
+        - comp-core
+    - id: danger-cmake-submodule-flags
+      value: "CMake submodule CI disables push and compression"
+      reason: "Submodule CI configures -DENABLE_PUSH=OFF -DENABLE_COMPRESSION=OFF because zlib/curl are not in submodules; local builds that expect those features must install system deps and flip the options."
+      confidence: high
+      evidence_refs:
+        - cmd-cmake-configure
+        - dep-curl
+        - dep-zlib
+    - id: danger-civetweb-version
+      value: "CivetWeb minimum version 1.14"
+      reason: "pull/src/handler.cc hard-errors if CIVETWEB_VERSION is below 1.14."
+      confidence: high
+      evidence_refs:
+        - comp-pull
+        - dep-civetweb
+  questions:
+    - id: q-lvt-fork-purpose
+      question: "Remote is LiveViewTech/prometheus-cpp while README badges/docs still point at jupp0r/prometheus-cpp. What LVT-specific divergence, sync, or pinning policy should agents assume versus upstream?"
+      area: ownership
+      priority: high
+      evidence_refs:
+        - entry-module-bazel
+        - entry-cmake-root
+    - id: q-readme-bcr-version
+      question: "README BCR example pins prometheus-cpp 1.2.4 while MODULE.bazel and CMake project version are 1.3.0 — which consumer version guidance is intentional?"
+      area: docs
+      priority: medium
+      evidence_refs:
+        - entry-module-bazel
+        - entry-cmake-root
+    - id: q-empty-submodules
+      question: "3rdparty/civetweb and 3rdparty/googletest directories exist but submodule contents were empty in this checkout — is submodule init required for all CMake workflows, or is vcpkg/system packages the preferred path here?"
+      area: build
+      priority: medium
+      evidence_refs:
+        - dep-civetweb
+        - dep-googletest
+        - cmd-submodule-init
