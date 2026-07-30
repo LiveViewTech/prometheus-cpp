@@ -7,7 +7,6 @@ C++ client library implementing the Prometheus data model so services can collec
 - Tech: C++11, CMake and Bazel dual builds, GoogleTest, Google Benchmark
 - Type: single multi-library repo (`core`, `pull`, `push`, `util`)
 - Version: 1.3.0 (`CMakeLists.txt`, `MODULE.bazel`)
-- Sub-guides: `core/AGENTS.md`, `pull/AGENTS.md`, `push/AGENTS.md`, `util/AGENTS.md`
 
 ## Commands
 
@@ -27,7 +26,7 @@ bazel run -c opt //core/benchmarks
 bazel test //pull/tests/integration:scrape-test
 ```
 
-CMake submodule/example flow above turns push and compression off because zlib/curl are not in `3rdparty`. Enable them only when system/vcpkg deps are present (`ENABLE_PUSH`, `ENABLE_COMPRESSION`).
+CMake submodule/example flow above turns push and compression off because zlib/curl are not in `3rdparty`. Enable them only when system/vcpkg deps are present (`ENABLE_PUSH`, `ENABLE_COMPRESSION`). Scrape integration needs Telegraf installed.
 
 ## Conventions
 
@@ -36,13 +35,14 @@ CMake submodule/example flow above turns push and compression off because zlib/c
 - Public APIs live under `*/include/prometheus/`; `detail/` and `*/src/` are internal
 - Prefer pre-created `Family::Add` label sets over hot-path dynamic `Add` (see `README.md` usage notes)
 - Keep `Registry` (or other `Collectable`) alive for the lifetime of `Exposer`/`Gateway` registration (`std::weak_ptr`)
+- Duplicate family names: `InsertBehavior::Merge` vs `Throw` (`core/include/prometheus/registry.h`)
 
 ## Directory Map
 
-- `core/` → see `core/AGENTS.md` — metrics, registry, text serializer
-- `pull/` → see `pull/AGENTS.md` — CivetWeb HTTP exposer
-- `push/` → see `push/AGENTS.md` — libcurl Pushgateway client
-- `util/` → see `util/AGENTS.md` — shared base64 helpers
+- `core/` — metrics, registry, text serializer
+- `pull/` — CivetWeb HTTP exposer (optional zlib when `ENABLE_COMPRESSION`)
+- `push/` — libcurl Pushgateway client
+- `util/` — header-only base64 helpers (`detail/`, not app-facing)
 - `cmake/` — package config, pkg-config templates, import smoke tests
 - `bazel/` — export-header and third-party BUILD helpers
 - `3rdparty/` — git submodules (`civetweb`, `googletest`); empty until `git submodule update --init`
